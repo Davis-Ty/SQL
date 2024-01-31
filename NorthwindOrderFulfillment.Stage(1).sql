@@ -1,23 +1,66 @@
-select top 1 (Orders.EmployeeID) as TopEmployeeOrders, firstName, lastName, count(Orders.OrderID) as TotalOrdersPlaced
-from Employees,Orders,[Order Details]
-where Employees.EmployeeID=orders.EmployeeID and [Order Details].OrderID=Orders.OrderID 
-group by Orders.EmployeeID,firstName, lastName
-order by TotalOrdersPlaced DESC;
+-- Retrieve top employee based on total orders placed
+SELECT TOP 1 
+    E.EmployeeID AS TopEmployeeID,
+    E.firstName,
+    E.lastName,
+    COUNT(O.OrderID) AS TotalOrdersPlaced
+FROM 
+    Employees E
+INNER JOIN 
+    Orders O ON E.EmployeeID = O.EmployeeID
+INNER JOIN 
+    [Order Details] OD ON O.OrderID = OD.OrderID 
+GROUP BY 
+    E.EmployeeID, E.firstName, E.lastName
+ORDER BY 
+    TotalOrdersPlaced DESC;
 
-select top 5(CompanyName),count(Suppliers.SupplierID) AS SuppliedProducts
-from Employees,Orders,Suppliers,Products
-where Employees.EmployeeID=orders.EmployeeID and Suppliers.SupplierID=Products.SupplierID
-group by CompanyName
-Order by SuppliedProducts desc;
+-- Retrieve top 5 suppliers based on the number of supplied products
+SELECT TOP 5 
+    S.CompanyName,
+    COUNT(P.ProductID) AS SuppliedProducts
+FROM 
+    Employees E
+INNER JOIN 
+    Orders O ON E.EmployeeID = O.EmployeeID
+INNER JOIN 
+    Suppliers S ON S.SupplierID = P.SupplierID
+INNER JOIN 
+    Products P ON S.SupplierID = P.SupplierID
+GROUP BY 
+    S.CompanyName
+ORDER BY 
+    SuppliedProducts DESC;
 
-select top 5 (productName) as FiveBestProducts ,count(Products.ProductID) AS ProductsSold
-from Employees,Orders,Suppliers,Products,[Order Details]
-where  Employees.EmployeeID=orders.EmployeeID and Suppliers.SupplierID=Products.SupplierID and [Order Details].OrderID=Orders.OrderID and [Order Details].ProductID= Products.ProductID
-group by productName
-Order by  ProductsSold desc;
+-- Retrieve top 5 best-selling products with product category
+SELECT TOP 5 
+    P.ProductName,
+    COUNT(OD.ProductID) AS ProductsSold,
+    P.Category
+FROM 
+    Employees E
+INNER JOIN 
+    Orders O ON E.EmployeeID = O.EmployeeID
+INNER JOIN 
+    [Order Details] OD ON O.OrderID = OD.OrderID
+INNER JOIN 
+    Products P ON OD.ProductID = P.ProductID
+GROUP BY 
+    P.ProductName, P.Category
+ORDER BY 
+    ProductsSold DESC;
 
-select top 1 (ShipperID), Shippers.CompanyName, avg(datediff(day,OrderDate,ShippedDate)) as deliveredWithIn#Days, count(orders.OrderID) as NumOfPackages
-from Shippers,Employees,Orders,Suppliers,Products,[Order Details]
-where  Employees.EmployeeID=orders.EmployeeID and Suppliers.SupplierID=Products.SupplierID and [Order Details].OrderID=Orders.OrderID and [Order Details].ProductID= Products.ProductID
-group by ShipperID, Shippers.CompanyName
-order by deliveredWithIn#Days;
+-- Retrieve the fastest shipper with average delivery time and number of packages shipped
+SELECT TOP 1 
+    Sh.ShipperID,
+    Sh.companyName AS ShipperName,
+    AVG(DATEDIFF(day, O.OrderDate, O.ShippedDate)) AS DeliveredWithinDays,
+    COUNT(O.OrderID) AS NumOfPackagesShipped
+FROM 
+    Shippers Sh
+INNER JOIN 
+    Orders O ON Sh.ShipperID = O.ShipperID
+GROUP BY 
+    Sh.ShipperID, Sh.companyName
+ORDER BY 
+    DeliveredWithinDays;
